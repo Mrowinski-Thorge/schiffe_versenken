@@ -1,9 +1,8 @@
-// Schiffe versenken - Light Version mit Win/Lose
-// Calliope mini (MakeCode JavaScript)
+// Schiffe versenken - Light Version mit Win/Lose und Boot-LED-Aus
+// Calliope mini V3 (MakeCode JavaScript)
 
 let kanal = 1
-let boats: number[][] = []   // Spieler-Boote
-let hits: number[] = []      // Treffer auf eigene Boote
+let boats: number[][] = []   // Spieler-Boote (jede Liste enthält Positionen)
 let turn = false             // Wer ist dran
 let state = 0                // Spielzustand
 let cursor = 0               // Zielcursor (0–24)
@@ -61,7 +60,6 @@ radio.onReceivedValue(function (name, value) {
             showHit()
             enemyHits += 1
             if (enemyHits >= totalBoatParts) {
-                // Gegner hat mich komplett versenkt
                 gameOver(false)
                 return
             }
@@ -79,7 +77,6 @@ radio.onReceivedValue(function (name, value) {
             showHit()
             myHits += 1
             if (myHits >= totalBoatParts) {
-                // Ich habe Gegner komplett versenkt
                 gameOver(true)
                 return
             }
@@ -168,32 +165,45 @@ function fire() {
     }
 }
 
+// Trefferprüfung + Bootsteil löschen
 function checkHit(pos: number): boolean {
-    for (let b of boats) {
+    for (let i = 0; i < boats.length; i++) {
+        let b = boats[i]
         if (b.indexOf(pos) >= 0) {
+            // Position aus Boot löschen
+            boats[i] = b.filter(e => e != pos)
+            // LED ausmachen
+            let x = pos % 5
+            let y = Math.idiv(pos, 5)
+            led.unplot(x, y)
             return true
         }
     }
     return false
 }
 
+// RGB-LEDs unten für Trefferanzeige
 function showHit() {
-    light.setAll(light.rgb(255, 0, 0))
-    pause(500)
-    light.clear()
+    // alle 3 LEDs rot
+    basic.setLedColors(0xff0000, 0xff0000, 0xff0000)
+    basic.pause(500)
+    basic.turnRgbLedOff()
 }
 
 function showMiss() {
-    light.setAll(light.rgb(0, 255, 0))
-    pause(500)
-    light.clear()
+    // alle 3 LEDs grün
+    basic.setLedColors(0x00ff00, 0x00ff00, 0x00ff00)
+    basic.pause(500)
+    basic.turnRgbLedOff()
 }
 
 function gameOver(win: boolean) {
     if (win) {
         basic.showString("WIN")
+        basic.setLedColors(0x0000ff, 0x0000ff, 0x0000ff) // blau
     } else {
         basic.showString("LOSE")
+        basic.setLedColors(0xffffff, 0xffffff, 0xffffff) // weiß
     }
     state = 99
 }

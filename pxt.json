@@ -1,5 +1,5 @@
 {
-    "name": "Schiffe_Versenken",
+    "name": "Kampfspiel",
     "description": "",
     "dependencies": {
         "core": "*",
